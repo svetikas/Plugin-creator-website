@@ -78,25 +78,32 @@
 </script>
 <template id="mechanics-chart-template">
     <style>
-        .controls { margin-bottom: 15px; display: flex; gap: 20px; }
+        .controls { margin-bottom: 15px; display: flex; gap: 20px; flex-wrap: wrap; }
         .control-group { display: flex; flex-direction: column; }
         .chart-container { position: relative; height: 300px; width: 100%; }
         .value-display { font-weight: bold; }
     </style>
     <div class="controls">
         <div class="control-group">
-        <label>
-            <span class="x-label">Building Width</span>: 
-            <span class="x-val value-display">4</span> <span class="x-unit">tiles</span>
-        </label>
-        <input type="range" class="x-slider" min="1" max="16" value="4">
+            <label>
+                <span class="x-label">Building Width</span>: 
+                <span class="x-val value-display">4</span> <span class="x-unit">tiles</span>
+            </label>
+            <input type="range" class="x-slider" min="1" max="16" value="4">
         </div>
         <div class="control-group">
-        <label>
-            <span class="y-label">Building Height</span>: 
-            <span class="y-val value-display">4</span> <span class="y-unit">tiles</span>
-        </label>
-        <input type="range" class="y-slider" min="1" max="16" value="4">
+            <label>
+                <span class="y-label">Building Height</span>: 
+                <span class="y-val value-display">4</span> <span class="y-unit">tiles</span>
+            </label>
+            <input type="range" class="y-slider" min="1" max="16" value="4">
+        </div>
+        <div class="control-group">
+            <label>
+                <span class="p-label">Max Price</span>: 
+                <span class="p-val value-display">25000</span>
+            </label>
+            <input type="range" class="p-slider" min="5000" max="100000" step="5000" value="25000">
         </div>
     </div>
     <div class="chart-container">
@@ -111,22 +118,28 @@ class MechanicsChart extends HTMLElement {
 
     this.xSlider = this.querySelector('.x-slider');
     this.ySlider = this.querySelector('.y-slider');
+    this.pSlider = this.querySelector('.p-slider');
+    
     this.xVal = this.querySelector('.x-val');
     this.yVal = this.querySelector('.y-val');
+    this.pVal = this.querySelector('.p-val');
+    
     this.canvasCtx = this.querySelector('.chart-canvas').getContext('2d');
 
     this.configureAttributes();
 
-    // Default configuration (Fallback if you don't provide custom data specs)
+    // Default configuration
     this.chartConfig = {
       xAxisTitle: 'Monthly Price',
       yAxisTitle: 'Max Allowed Capability Ceiling',
-      generateDatasets: (x, y) => {
+      generateDatasets: (x, y, maxPrice) => {
         const labels = [];
         const data1 = [];
         const area = x * y;
-        for (let price = 0; price <= 25000; price += 1000) {
-          labels.push(price);
+        // Dynamically increment up to the user-defined maxPrice
+        const step = maxPrice / 25; 
+        for (let price = 0; price <= maxPrice; price += step) {
+          labels.push(Math.round(price));
           data1.push(area * (price / 5000));
         }
         return {
@@ -141,6 +154,7 @@ class MechanicsChart extends HTMLElement {
     
     this.xSlider.addEventListener('input', () => this.updateDimensions());
     this.ySlider.addEventListener('input', () => this.updateDimensions());
+    this.pSlider.addEventListener('input', () => this.updateDimensions());
     
     this.updateDimensions();
   }
@@ -159,14 +173,22 @@ class MechanicsChart extends HTMLElement {
   configureAttributes() {
     this.querySelector('.x-label').textContent = this.getAttribute('x-label') || 'Width';
     this.querySelector('.y-label').textContent = this.getAttribute('y-label') || 'Height';
+    this.querySelector('.p-label').textContent = this.getAttribute('p-label') || 'Max Price';
     this.querySelector('.x-unit').textContent = this.getAttribute('x-unit') || 'tiles';
     this.querySelector('.y-unit').textContent = this.getAttribute('y-unit') || 'tiles';
+
     this.xSlider.min = this.getAttribute('x-min') || '1';
     this.xSlider.max = this.getAttribute('x-max') || '16';
     this.xSlider.value = this.getAttribute('x-value') || '4';
+
     this.ySlider.min = this.getAttribute('y-min') || '1';
     this.ySlider.max = this.getAttribute('y-max') || '16';
     this.ySlider.value = this.getAttribute('y-value') || '4';
+
+    this.pSlider.min = this.getAttribute('p-min') || '5000';
+    this.pSlider.max = this.getAttribute('p-max') || '100000';
+    this.pSlider.value = this.getAttribute('p-value') || '25000';
+    this.pSlider.step = this.getAttribute('p-step') || '5000';
   }
 
   initChart() {
@@ -188,19 +210,21 @@ class MechanicsChart extends HTMLElement {
   updateDimensions() {
     const x = parseInt(this.xSlider.value);
     const y = parseInt(this.ySlider.value);
+    const maxPrice = parseInt(this.pSlider.value);
 
     this.xVal.textContent = x;
     this.yVal.textContent = y;
+    this.pVal.textContent = maxPrice;
 
-    // Run the custom mapping function passing the current dynamic slider values
-    const payload = this.chartConfig.generateDatasets(x, y);
+    // Run mapping function passing the dynamic x, y, and maxPrice states
+    const payload = this.chartConfig.generateDatasets(x, y, maxPrice);
     
     this.chart.data.labels = payload.labels;
     this.chart.data.datasets = payload.datasets.map((dataset, index) => {
-      // Retain existing datasets styles or apply clean line defaults dynamically
       return {
         tension: 0.1,
         borderWidth: 2.5,
+        pointRadius: 0,
         ...dataset
       };
     });
@@ -233,17 +257,18 @@ Where the constants apply to each resource respectively:
 
 You may use the graph below to visualize how adjustments to building area ($S$) and monthly price ($P$) impact the final maximum value.
 
-<mechanics-chart id="waterPowerChart"></mechanics-chart>
+<mechanics-chart id="waterPowerChart" p-min="100" p-step="1" p-value="5000" p-max="15000"></mechanics-chart>
 <script>
 document.getElementById('waterPowerChart').setCustomData({
     xAxisTitle: 'Monthly Price',
     yAxisTitle: 'Max Value',
-    generateDatasets: (width, height) => {
+    generateDatasets: (width, height, maxPrice) => {
         const area = width * height;
         const labels = [];
         const waterValues = [];
         const powerValues = [];
-        for (let price = 0; price <= 15000; price += 500) {
+        const step = Math.round(maxPrice / 200)
+        for (let price = 0; price <= maxPrice; price += step) {
             labels.push(`${price}`);
             waterValues.push(computeWaterLimit(area, price))
             powerValues.push(computePowerLimit(area, price))
@@ -286,17 +311,18 @@ Where the constants represent:
 
 You may use the graph below to visualize how adjustments to building area ($S$) and monthly price ($P$) impact the final maximum value.
 
-<mechanics-chart id="influenceChart"></mechanics-chart>
+<mechanics-chart id="influenceChart" p-min="100" p-step="1" p-value="5000" p-max="10000"></mechanics-chart>
 <script>
 document.getElementById('influenceChart').setCustomData({
     xAxisTitle: 'Monthly Price',
     yAxisTitle: 'Max Value',
-    generateDatasets: (width, height) => {
+    generateDatasets: (width, height, maxPrice) => {
         const area = width * height;
         const labels = [];
         const supportedInf = [];
         const unsupportedInf = [];
-        for (let price = 0; price <= 50000; price += 1000) {
+        const step = Math.round(maxPrice / 200)
+        for (let price = 0; price <= maxPrice; price += step) {
             labels.push(`${price}`);
             supportedInf.push(computeSupportedInfluenceLimit(area, price))
             unsupportedInf.push(computeUnsupportedInfluenceLimit(area, price))
