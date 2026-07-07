@@ -51,3 +51,9 @@ jobs:
           tags: |
             ${{ env.IMAGE_DOCS }}:latest
             ${{ env.IMAGE_DOCS }}:${{ github.sha }}
+
+      - name: Trigger deployment
+        env:
+          WEBHOOK: ${{ secrets.DEPLOY_WEBHOOK }}
+        run: |
+          curl -X POST $WEBHOOK
