@@ -1,4 +1,6 @@
 site_name: TheoTown plugin system
+use_directory_urls: true
+site_url: https://pca.svetikas.lt/docs/
 theme:
   name: material
   features:
