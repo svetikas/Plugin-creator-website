@@ -14,7 +14,9 @@ creators wanting to use these features have to apply for a trusted plugin creato
 
 ## How it works
 
-### Pre 1.11.73
+### Before 1.11.73 / Privileged codes
+
+!!! danger "Privileged codes are now slowly getting disabled, please migrate to the new system."
 
 Using an older privilege system, you would reach out to the developers to 
 obtain a trusted plugin creator code that you would supply in a draft definition using the
@@ -32,7 +34,7 @@ obtain a trusted plugin creator code that you would supply in a draft definition
 }]
 ```
 
-### Post 1.11.73
+### Post 1.11.73 / Privilege requesting
 
 In the new privilege system, instead of supplying a privileged key,
 you simply declare whether a draft requires privileges using the `require privileges` attribute.
