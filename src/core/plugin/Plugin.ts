@@ -77,6 +77,15 @@ export class Plugin {
         this.drafts.splice(index, 1) // Remove item
     }
 
+    public moveDraft(fromIndex: number, toIndex: number) {
+        if (fromIndex === toIndex) return;
+        if (fromIndex < 0 || fromIndex >= this.drafts.length) return;
+        if (toIndex < 0 || toIndex >= this.drafts.length) return;
+
+        const [draft] = this.drafts.splice(fromIndex, 1)
+        this.drafts.splice(toIndex, 0, draft)
+    }
+
     public getFile(logicalPath: string) {
         return this.fileMapping[logicalPath] ?? null
     }

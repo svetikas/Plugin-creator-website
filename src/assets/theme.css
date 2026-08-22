@@ -1,0 +1,242 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2023 JustAnyone
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ */
+
+/* ------------------------------------------------------------------ */
+/*  Design tokens                                                      */
+/* ------------------------------------------------------------------ */
+:root {
+    --app-bg: #eef2f7;
+    --app-surface: #ffffff;
+    --app-surface-soft: #f6f8fb;
+    --app-border: #dde3ec;
+    --app-border-strong: #c7d0dd;
+
+    --app-text: #1c2530;
+    --app-text-muted: #5b6b7f;
+    --app-text-faint: #8794a3;
+
+    --app-primary: #0f6fde;
+    --app-primary-dark: #0a4fa1;
+    --app-primary-soft: #e8f1fd;
+
+    --app-danger: #d1453d;
+    --app-warning-bg: #fff6e8;
+    --app-warning-border: #f3d29a;
+    --app-warning-text: #8a5300;
+
+    --app-error-bg: #fdecea;
+    --app-error-border: #f4c3bd;
+    --app-error-text: #8a1f1a;
+
+    --app-radius-sm: 6px;
+    --app-radius: 10px;
+    --app-radius-lg: 14px;
+
+    --app-shadow-sm: 0 1px 2px rgba(20, 30, 45, 0.06);
+    --app-shadow: 0 4px 16px rgba(20, 30, 45, 0.08);
+    --app-shadow-lg: 0 12px 32px rgba(20, 30, 45, 0.12);
+
+    --app-max-width: 1180px;
+
+    color-scheme: light;
+}
+
+/* --------------------------------------------------------- */
+/*  Dark mode overrides                                      */
+/*  Activated by toggling the `.app-dark` class on <html>.   */
+/*  Mirrors the light palette above so every component that  */
+/*  consumes these tokens gets a dark variant for free.      */
+/* --------------------------------------------------------- */
+:root.app-dark {
+    --app-bg: #0d1117;
+    --app-surface: #161b24;
+    --app-surface-soft: #1c222d;
+    --app-border: #2b3441;
+    --app-border-strong: #3c4757;
+
+    --app-text: #e7ecf3;
+    --app-text-muted: #a9b4c2;
+    --app-text-faint: #79869a;
+
+    --app-primary: #4c9aff;
+    --app-primary-dark: #2f7de1;
+    --app-primary-soft: rgba(76, 154, 255, 0.16);
+
+    --app-danger: #f47c74;
+    --app-warning-bg: #2c2410;
+    --app-warning-border: #4d3d16;
+    --app-warning-text: #e8b34c;
+
+    --app-error-bg: #3a1613;
+    --app-error-border: #5c2521;
+    --app-error-text: #f5a39c;
+
+    --app-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+    --app-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    --app-shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5);
+
+    color-scheme: dark;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    background: var(--app-bg);
+}
+
+body {
+    margin: 0;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.55;
+    color: var(--app-text);
+    background: var(--app-bg);
+    text-align: left;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--app-text);
+    line-height: 1.3;
+}
+
+p {
+    color: var(--app-text-muted);
+}
+
+a {
+    color: var(--app-primary);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+::selection {
+    background: var(--app-primary);
+    color: #fff;
+}
+
+/* Thin, unobtrusive scrollbars for the preview / code panels */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--app-border-strong);
+    border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--app-text-faint);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Form attribute rows                                                */
+/* ------------------------------------------------------------------ */
+.attribute {
+    margin-bottom: 1.25rem;
+}
+
+.attribute label {
+    display: block;
+    margin-bottom: 0.375rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--app-text);
+}
+
+.attribute-input {
+    display: block;
+    width: 100%;
+    padding: .5rem .75rem;
+    font-size: 0.95rem;
+    font-weight: 400;
+    line-height: 1.5;
+    font-family: inherit;
+    color: var(--app-text);
+    background-color: var(--app-surface);
+    background-clip: padding-box;
+    border: 1px solid var(--app-border-strong);
+    border-radius: var(--app-radius-sm);
+    transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+}
+
+.attribute-input:hover {
+    border-color: var(--app-text-faint);
+}
+
+.attribute-input:focus {
+    outline: none;
+    border-color: var(--app-primary);
+    box-shadow: 0 0 0 3px var(--app-primary-soft);
+}
+
+.attribute-input:disabled {
+    background-color: var(--app-surface-soft);
+    color: var(--app-text-faint);
+    cursor: not-allowed;
+}
+
+.attribute-description {
+    display: block;
+    margin-top: 0.375rem;
+    color: var(--app-text-faint) !important;
+    font-size: 0.825rem;
+}
+
+.attribute-error {
+    display: block;
+    margin-top: 0.375rem;
+    padding: 0.375rem 0.625rem;
+    color: var(--app-error-text);
+    background: var(--app-error-bg);
+    border: 1px solid var(--app-error-border);
+    border-radius: var(--app-radius-sm);
+    font-size: 0.825rem;
+    white-space: pre-line;
+}
+
+.bg-light {
+    background-color: var(--app-surface-soft) !important;
+}
+
+.remove-hyperlink {
+    color: var(--app-danger);
+    text-decoration: none;
+    background-color: transparent;
+    padding-left: 5px;
+}

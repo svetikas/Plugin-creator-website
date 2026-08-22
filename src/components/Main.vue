@@ -54,9 +54,51 @@ const zipFileUpload = ref(null);
 const selectedDraftType = ref(null);
 const showPreviewPanel = ref(NODE_ENV === "development");
 
-const types = Array.from(Types.getTypes(), (draftType) => draftType.tag);
+// Drag-and-drop reordering state for the drafts list
+const draggedIndex: Ref<number | null> = ref(null);
+const dragOverIndex: Ref<number | null> = ref(null);
 
-const version = __APP_VERSION__
+function resetDragState() {
+  draggedIndex.value = null;
+  dragOverIndex.value = null;
+}
+
+function onDraftDragStart(index: number, event: DragEvent) {
+  draggedIndex.value = index;
+  event.dataTransfer.effectAllowed = 'move';
+  // Firefox requires data to be set for drag to actually start
+  event.dataTransfer.setData('text/plain', String(index));
+
+  // Use the whole draft card as the drag preview instead of just the
+  // small grip handle that initiated the drag.
+  const card = event.currentTarget.closest('.draft-item');
+  if (card) {
+    const rect = card.getBoundingClientRect();
+    event.dataTransfer.setDragImage(card, event.clientX - rect.left, event.clientY - rect.top);
+  }
+}
+
+function onDraftDragOver(index: number) {
+  if (draggedIndex.value === null) return;
+  dragOverIndex.value = index;
+}
+
+function onDraftDragLeave(index: number) {
+  if (dragOverIndex.value === index) dragOverIndex.value = null;
+}
+
+function onDraftDrop(index: number, event: DragEvent) {
+  event.preventDefault();
+  const from = draggedIndex.value;
+  if (from === null || from === index) {
+    resetDragState();
+    return;
+  }
+  plugin.value.moveDraft(from, index);
+  resetDragState();
+}
+
+const types = Array.from(Types.getTypes(), (draftType) => draftType.tag);
 
 function showErrorToast(summary: string, detail: string, life: number = 10000) {
   toast.add({
@@ -165,7 +207,13 @@ function getFilename(path: string) {
   return path.split("/").pop()
 }
 
-async function loadFromZip(event) {
+async function loadFromZip(event: HTMLInputElement) {
+  if (!event.files) {
+    return showErrorToast(
+        "Project loading failed",
+        "No file selected."
+    );
+  }
 
   if (event.files.length == 0) {
     return showErrorToast(
@@ -241,7 +289,7 @@ async function loadFromZip(event) {
     )
   }
 
-  let alreadyVisited = {}
+  let alreadyVisited: { [key: string]: boolean } = {}
   let enumeratedFileUsages = plugin.value.enumerateFiles()
   enumeratedFileUsages.forEach(item => {
     if (alreadyVisited[item] !== true) {
@@ -270,242 +318,383 @@ window.onerror = function (msg, url, line, col, error) {
 
 </script>
 
+
 <template>
   <Toast position="bottom-right" />
 
-  <div class="page-container">
+  <div class="main-content">
 
-    <div class="main-content">
+    <div class="generator-panel">
 
-      <div class="generator-panel">
-        <h2>Plugin Creator for TheoTown</h2>
+      <section class="step">
+        <div class="step-heading">
+          <span class="step-index">1</span>
+          <h2>Write the manifest</h2>
+        </div>
 
-        <p class="maintenance-message">
-          As of 2026, this site is in maintenance mode and will not receive new features.
+        <Collapsable title="Manifest" heading="h3">
+          <p>
+            To begin creating your plugin, please create a manifest of the plugin first. Manifest is a file that
+            helps TheoTown to identify and manage your plugin through a graphical interface. Your plugin will also
+            show up under local plugins list and the plugins toolbar.
+          </p>
+          <p>
+            If you're new to plugin creation, you might want to check out the documentation
+            <a href="https://pca.svetikas.lt/docs/getting-started/writing-a-sample-plugin/"> here</a>.
+          </p>
+          <AttributeContainer
+              :attribute-owner="plugin.manifest"
+          />
+        </Collapsable>
+      </section>
+
+      <section class="step">
+        <div class="step-heading">
+          <span class="step-index">2</span>
+          <h2>Add drafts</h2>
+        </div>
+
+        <p>
+          Once you've finished writing the manifest, you can begin adding drafts to your plugin.
+          A draft is a general term used to refer to a plugin object inside the game. What the draft can do
+          is defined by the draft type.
         </p>
-        
-        <div class="generator-header">
 
-          <Collapsable title="Manifest">
-            <p>
-              To begin creating your plugin, please create a manifest of the plugin first. Manifest is a file that
-              helps TheoTown to identify and manage your plugin through a graphical interface. Your plugin will also
-              show up under local plugins list and the plugins toolbar.
-            </p>
-            <p>
-              If you're new to plugin creation, you might want to check out the documentation
-              <a href="https://pca.svetikas.lt/docs/getting-started/writing-a-sample-plugin/"> here</a>.
-            </p>
-            <AttributeContainer
-                :attribute-owner="plugin.manifest"
-            />
-          </Collapsable>
-
-
-
-          <p>
-            Once you've finished writing the manifest, you can begin adding drafts to your plugin.
-          </p>
-          <p>
-            Draft is a general term used to refer to a plugin object inside the game. What the draft can do
-            is defined by the draft type.
-          </p>
-
-          <!-- Type selector for new draft object -->
-          <div class="type-selector">
-            <Select
-              style="width: 100%;"
-              v-model="selectedDraftType"
-              :options="types"
-              filter  
-              placeholder="Select draft type"
-            >
-              <template #value="slotProps">
-                <div v-if="slotProps.value" class="flex items-center">
-                  <div>{{ capitalizeFirstLetter(slotProps.value) }}</div>
-                </div>
-                <span v-else>
-                    {{ slotProps.placeholder }}
-                </span>
-              </template>
-              <template #option="slotProps">
-                <div class="flex items-center">
-                  <div>{{ capitalizeFirstLetter(slotProps.option) }}</div>
-                </div>
-              </template>
-            </Select>
-            <Button @click="addNewDraft">Add</Button>
-          </div>
+        <!-- Type selector for new draft object -->
+        <div class="type-selector">
+          <Select
+            class="type-select"
+            v-model="selectedDraftType"
+            :options="types"
+            filter
+            placeholder="Select draft type"
+          >
+            <template #value="slotProps">
+              <div v-if="slotProps.value" class="flex items-center">
+                <div>{{ capitalizeFirstLetter(slotProps.value) }}</div>
+              </div>
+              <span v-else>
+                  {{ slotProps.placeholder }}
+              </span>
+            </template>
+            <template #option="slotProps">
+              <div class="flex items-center">
+                <div>{{ capitalizeFirstLetter(slotProps.option) }}</div>
+              </div>
+            </template>
+          </Select>
+          <Button icon="pi pi-plus" label="Add draft" @click="addNewDraft" />
         </div>
 
         <div v-if="plugin.drafts.length > 0" class="drafts">
-          <!--:title="`${(props.index + 1)}. ${props.draftObject.id.value ? props.draftObject.id.value : 'No ID specified'} (type: ${ props.draftObject.type.tag})`"-->
-          <Collapsable
+          <div
               v-for="(obj, index) in plugin.drafts"
-              :title="`${(index + 1)}. ${obj.id.value ? obj.id.value : 'No ID specified'} (type: ${obj.type.tag})`"
-              :removable="true"
-              @pop="plugin.removeDraftAtIndex(index)"
-              class="marginify"
+              :key="index"
+              class="draft-item marginify"
+              :class="{
+                'draft-item--dragging': draggedIndex === index,
+                'draft-item--drag-over': dragOverIndex === index && draggedIndex !== index
+              }"
+              @dragover.prevent="onDraftDragOver(index)"
+              @dragleave="onDraftDragLeave(index)"
+              @drop="onDraftDrop(index, $event)"
           >
-            <AttributeContainer
-                :attribute-owner="obj"
-            />
-          </Collapsable>
+            <Collapsable
+                :title="`${(index + 1)}. ${obj.id.value ? obj.id.value : 'No ID specified'} (type: ${obj.type.tag})`"
+                :removable="true"
+                :reorderable="true"
+                :can-move-up="index > 0"
+                :can-move-down="index < plugin.drafts.length - 1"
+                heading="h3"
+                @pop="plugin.removeDraftAtIndex(index)"
+                @move-up="plugin.moveDraft(index, index - 1)"
+                @move-down="plugin.moveDraft(index, index + 1)"
+            >
+              <template #handle>
+                <span
+                    class="drag-handle"
+                    draggable="true"
+                    title="Drag to reorder"
+                    @dragstart="onDraftDragStart(index, $event)"
+                    @dragend="resetDragState"
+                    @click.stop
+                >
+                  <i class="pi pi-bars"></i>
+                </span>
+              </template>
+              <AttributeContainer
+                  :attribute-owner="obj"
+              />
+            </Collapsable>
+          </div>
+        </div>
+        <p v-else class="empty-drafts">
+          <i class="pi pi-inbox"></i>
+          No drafts added yet &mdash; pick a draft type above to create your first one.
+        </p>
+      </section>
+
+      <section class="step">
+        <div class="step-heading">
+          <span class="step-index">3</span>
+          <h2>Export your plugin</h2>
         </div>
 
+        <p>
+          Now you can export your plugin to be loaded into the game.
+          It is recommended to export the zip archive, as it provides you with a single
+          file that you can just put into the game and it just works. It also acts as PCA
+          project file, allowing you to restore your project from file.
+          If you want to protect the contents
+          of the plugin by encryption, read
+          <a href="https://pca.svetikas.lt/docs/guides/plugin-encryption/">here</a>
+          on how to do so.
+        </p>
+        <p>
+          You can also export the generated JSON and manifest files separately,
+          if you prefer to do that instead.
+        </p>
+
+        <input
+            ref="zipFileUpload"
+            accept="application/zip"
+            type="file"
+            style="display:none;"
+            @change="loadFromZip($event.target)"
+        />
 
         <div class="controls">
-          <p>
-            Now you can export your plugin to be loaded into the game.
-            It is recommended to export the zip archive, as it provides you with a single
-            file that you can just put into the game and it just works. It also acts as PCA
-            project file, allowing you to restore your project from file.
-            If you want to protect the contents
-            of the plugin by encryption, read
-            <a href="https://pca.svetikas.lt/docs/guides/plugin-encryption/">here</a>
-            on how to do so.
-          </p>
-          <p>
-            You can also export the generated JSON and manifest files separately,
-            if you prefer to do that instead.
-          </p>
-
-          <input
-              ref="zipFileUpload"
-              accept="application/zip"
-              type="file"
-              style="display:none;"
-              @change="loadFromZip($event.target)"
-          />
-          <Button @click="zipFileUpload.click()">Load from zip</Button>
-          <Button @click="exportToZip()">Export as a zip archive</Button>
-          <Button @click="exportToJson()">Export JSON file</Button>
-          <Button @click="exportToManifest()">Export plugin.manifest file</Button>
+          <Button class="primary-action" icon="pi pi-download" label="Export as a zip archive" @click="exportToZip()" />
+          <Button severity="secondary" outlined icon="pi pi-upload" label="Load from zip" @click="zipFileUpload.click()" />
+          <Button severity="secondary" outlined icon="pi pi-file-export" label="Export JSON file" @click="exportToJson()" />
+          <Button severity="secondary" outlined icon="pi pi-file-export" label="Export plugin.manifest file" @click="exportToManifest()" />
         </div>
+      </section>
 
-
-      </div>
-
-      <div v-if="showPreviewPanel" class="preview-panel">
-        <h2>Files:</h2>
-        <pre>{{ plugin.fileMapping }}</pre>
-        <h2>Live preview of the generated JSON:</h2>
-        <h3>plugin.manifest</h3>
-        <pre>{{ plugin.manifest }}</pre>
-        <h3>code.json</h3>
-        <pre>{{ plugin.drafts }}</pre>
-      </div>
     </div>
 
-    <div class="footer">
-      <a href="https://github.com/JustAnyones/Plugin-creator-website">
-        &copy; Plugin creator website {{version}} by JustAnyone, 2026
-      </a>
-    </div>
+    <aside v-if="showPreviewPanel" class="preview-panel">
+      <div class="preview-heading">
+        <i class="pi pi-code"></i>
+        <h2>Live preview</h2>
+      </div>
+
+      <h3>Files</h3>
+      <pre>{{ plugin.fileMapping }}</pre>
+      <h3>plugin.manifest</h3>
+      <pre>{{ plugin.manifest }}</pre>
+      <h3>code.json</h3>
+      <pre>{{ plugin.drafts }}</pre>
+    </aside>
   </div>
 
 </template>
+
 <style scoped>
-/*.page-container {
-  display: flex;
-  align-items: stretch;
-}*/
-
-.page-container {
-  display: flex;
-  flex-direction: column;
-  min-height: 99vh;
-}
-
 .main-content {
   display: flex;
-  flex: 1;
+  align-items: flex-start;
+  gap: 1.5rem;
 }
 
 .marginify {
-  margin-bottom: 20px;
+  margin-bottom: 1.25rem;
 }
 
 .generator-panel {
-  flex: 5; /* Adjust the flex ratio for central panel size */
+  flex: 5;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  /*justify-content: space-between;*/
-  padding: 20px;
-  background-color: #ffffff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  border-radius: 5px;
+  gap: 1.75rem;
+  padding: 1.75rem;
+  background-color: var(--app-surface);
+  box-shadow: var(--app-shadow-sm);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-lg);
 }
 
-.maintenance-message {
-  margin: 6px 0 14px;
-  color: #a15d00;
-  font-size: 0.95rem;
-  font-weight: 600;
-  background: #fff4e5;
-  border: 1px solid #ffd7a1;
-  border-radius: 6px;
-  padding: 6px 10px;
+.step + .step {
+  padding-top: 1.75rem;
+  border-top: 1px solid var(--app-border);
 }
 
-.generator-header {
-  margin-bottom: 20px;
+.step-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 0.85rem;
+}
+
+.step-heading h2 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.step-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background: var(--app-primary-soft);
+  color: var(--app-primary-dark);
+  font-weight: 700;
+  font-size: 0.9rem;
 }
 
 .type-selector {
   display: flex;
   align-items: center;
+  gap: 0.6rem;
+  margin: 1rem 0;
+}
+
+.type-select {
+  flex: 1;
+  min-width: 0;
+}
+
+.empty-drafts {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0 0;
+  padding: 0.9rem 1rem;
+  background: var(--app-surface-soft);
+  border: 1px dashed var(--app-border-strong);
+  border-radius: var(--app-radius);
+  color: var(--app-text-faint);
+  font-size: 0.9rem;
 }
 
 .drafts {
-  margin-bottom: 20px;
+  margin-top: 0.25rem;
+}
+
+.draft-item {
+  border-radius: var(--app-radius);
+  transition: outline-color .12s ease, opacity .12s ease;
+  outline: 2px dashed transparent;
+  outline-offset: 4px;
+}
+
+.draft-item--dragging {
+  opacity: 0.45;
+}
+
+.draft-item--drag-over {
+  outline-color: var(--app-primary);
+}
+
+.drag-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: var(--app-radius-sm);
+  color: var(--app-text-faint);
+  cursor: grab;
+  transition: background-color .12s ease, color .12s ease;
+}
+
+.drag-handle:hover {
+  background: var(--app-border);
+  color: var(--app-text);
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.drag-handle i {
+  font-size: 0.85rem;
+}
+
+/* Hide drag-and-drop on touch devices */
+@media (hover: none) and (pointer: coarse) {
+  .drag-handle {
+    display: none;
+  }
 }
 
 .controls {
-  display: block;
-  justify-content: stretch;
-  margin-bottom: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1.1rem;
 }
 
-.controls button {
-  margin-bottom: 10px;
-  margin-right: 10px;
+.controls :deep(.p-button) {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.primary-action {
+  font-weight: 700;
 }
 
 .preview-panel {
   flex: 2;
-  background-color: #f5f5f5;
-  padding: 20px;
-  border-left: 1px solid #ccc;
+  min-width: 280px;
+  position: sticky;
+  top: 1.25rem;
+  max-height: calc(100vh - 2.5rem);
+  overflow-y: auto;
+  background-color: #10151d;
+  color: #d7e0ea;
+  padding: 1.25rem;
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow-sm);
+}
+
+.preview-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.preview-heading h2 {
+  color: #fff;
+  font-size: 1rem;
+  margin: 0;
+}
+
+.preview-panel h3 {
+  color: #93a5bd;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 1.25rem 0 0.5rem;
+}
+
+.preview-panel pre {
+  background: #171f2a;
+  border: 1px solid #2a3444;
+  border-radius: var(--app-radius-sm);
+  padding: 0.75rem;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
   overflow-x: auto;
 }
 
-.footer {
-  margin-top: auto;
-  text-align: center;
-  background-color: #f5f5f5;
-  color: #999;
-  padding: 10px 0;
-}
-
-@media (max-width: 800px) {
-  .page-container {
-    flex-direction: column;
-  }
-
+@media (max-width: 900px) {
   .main-content {
     flex-direction: column;
   }
 
-  .generator-panel {
-    flex: 1;
-    border-right: none;
-    margin-bottom: 20px;
-  }
-
   .preview-panel {
-    border: none;
-    padding: 10px;
+    position: static;
+    max-height: none;
+    width: 100%;
   }
 }
 </style>
