@@ -24,7 +24,7 @@
   -->
 
 <script setup lang="ts">
-import {defineProps, watch} from 'vue';
+import { watch } from 'vue';
 
 interface Props {
   name: string

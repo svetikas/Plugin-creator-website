@@ -24,7 +24,6 @@
   -->
 
 <script setup lang="ts">
-import {defineProps} from 'vue';
 import {FileAttribute} from "@/core/attribute/FileAttribute";
 import Button from 'primevue/button';
 

@@ -2,7 +2,7 @@
 
 import OptionalAttribute from "@/components/attributes/OptionalAttribute.vue";
 import MultiSelect from 'primevue/multiselect';
-import {defineProps, nextTick, Ref, ref, watch} from 'vue';
+import {Ref, ref, watch} from 'vue';
 import StringInput from "@/components/attributes/inputs/StringInput.vue";
 import NumberInput from "@/components/attributes/inputs/NumberInput.vue";
 import BooleanInput from "@/components/attributes/inputs/BooleanInput.vue";

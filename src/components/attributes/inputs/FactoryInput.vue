@@ -24,7 +24,6 @@
   -->
 
 <script setup lang="ts">
-import {defineProps} from 'vue';
 import {IListable} from "@/core/attribute/interfaces/Interfaces";
 import AttributeContainer from "@/components/elements/AttributeContainer.vue";
 import {AttributeOwner} from "@/core/plugin/AttributeOwner";

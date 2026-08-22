@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { defineProps } from 'vue';
 import Attribute from "@/components/attributes/Attribute.vue";
 import Button from 'primevue/button';
 interface Props {
@@ -19,7 +18,7 @@ defineEmits(['pop', 'raiseError'])
       :errors="props.errors"
       @raise-error="$emit('raiseError')"
   >
-    <Button icon="pi pi-times" severity="danger" rounded text @click="(e) => {
+    <Button icon="pi pi-times" severity="danger" rounded text @click="(e: Event) => {
       e.preventDefault();
       $emit('pop')
     }" />

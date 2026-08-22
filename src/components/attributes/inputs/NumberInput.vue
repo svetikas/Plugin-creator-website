@@ -24,7 +24,6 @@
   -->
 
 <script setup lang="ts">
-import {defineProps} from 'vue';
 import {NumberAttribute} from '@/core/attribute/NumberAttribute';
 interface Props {
   attribute: NumberAttribute,

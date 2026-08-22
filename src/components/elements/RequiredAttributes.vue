@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import {defineProps, nextTick, Ref, ref} from 'vue';
+import {ref} from 'vue';
 import StringInput from "@/components/attributes/inputs/StringInput.vue";
 import NumberInput from "@/components/attributes/inputs/NumberInput.vue";
 import BooleanInput from "@/components/attributes/inputs/BooleanInput.vue";

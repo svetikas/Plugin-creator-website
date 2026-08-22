@@ -27,7 +27,6 @@
 import RequiredAttributes from "@/components/elements/RequiredAttributes.vue";
 import OptionalAttributes from "@/components/elements/OptionalAttributes.vue";
 
-import {defineProps} from 'vue';
 import { AttributeOwner } from "@/core/plugin/AttributeOwner";
 
 interface Props {

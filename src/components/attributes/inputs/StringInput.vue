@@ -24,7 +24,6 @@
   -->
 
 <script setup lang="ts">
-import {defineProps} from 'vue';
 import {StringAttribute} from "@/core/attribute/StringAttribute";
 interface Props {
   attribute: StringAttribute,

@@ -24,7 +24,6 @@
   -->
 
 <script setup lang="ts">
-import {defineProps} from 'vue';
 import {LevelAttribute} from '@/core/attribute/LevelAttribute';
 interface Props {
   attribute: LevelAttribute

@@ -25,7 +25,7 @@
 
 <script setup lang="ts">
 
-import {computed, defineProps, onMounted, onUnmounted, ref} from 'vue';
+import {computed, onMounted, onUnmounted, ref} from 'vue';
 
 import Panel from 'primevue/panel';
 import Button from 'primevue/button';
