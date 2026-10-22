@@ -72,7 +72,7 @@ const displayTitle = computed(() => {
 
 <template>
 
-  <Panel :collapsed="isCollapsed" toggleable class="collapsable-panel">
+  <Panel :collapsed="isCollapsed" class="collapsable-panel">
     <template #header>
       <div class="collapsable-header">
         <slot name="handle"></slot>
