@@ -41,9 +41,17 @@ function add(object: AttributeOwner & IListable) {
 </script>
 
 <template>
-  <!-- TODO: Make this cleaner -->
-  <div>
-    <Button v-for="(callback, name) in props.attribute.options()" @click="add(callback(props.attribute.plugin))">{{ name }}</Button>
+  <div class="add-buttons">
+    <Button
+        v-for="(callback, name) in props.attribute.options()"
+        :key="name"
+        icon="pi pi-plus"
+        :label="String(name)"
+        size="small"
+        severity="secondary"
+        outlined
+        @click="add(callback(props.attribute.plugin))"
+    />
   </div>
 
   <Collapsable
@@ -60,6 +68,22 @@ function add(object: AttributeOwner & IListable) {
   </Collapsable>
 </template>
 
+<style scoped>
+
+.add-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+@media (max-width: 640px) {
+  .add-buttons :deep(.p-button) {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+}
+</style>
 <style>
 p {
   margin-top: 0;

@@ -37,13 +37,16 @@ const props = defineProps<Props>()
 </script>
 
 <template>
-  <!-- TODO: Make this cleaner -->
-  <div>
+  <div class="add-buttons">
     <Button
       v-for="(callback, name) in props.attribute.options()"
-      @click="props.attribute.value = callback(props.attribute.plugin)">
-      {{ name }}
-    </Button>
+      :key="name"
+      icon="pi pi-plus"
+      :label="String(name)"
+      size="small"
+      severity="secondary"
+      outlined
+      @click="props.attribute.value = callback(props.attribute.plugin)" />
   </div>
 
   <AttributeContainer
@@ -52,6 +55,22 @@ const props = defineProps<Props>()
   />
 </template>
 
+<style scoped>
+
+.add-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+@media (max-width: 640px) {
+  .add-buttons :deep(.p-button) {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+}
+</style>
 <style>
 p {
   margin-top: 0;

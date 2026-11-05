@@ -94,7 +94,7 @@ watch(() => selectedAttributes.value, async (newObj, oldObj) => {
   </MultiSelect>
 
   <!-- Actually list all the optional attributes -->
-  <div :key="item.attribute.id" v-for="(item, index) in selectedAttributes">
+  <div class="optional-item" :key="item.attribute.id" v-for="(item, index) in selectedAttributes">
     <OptionalAttribute
         :name="item.attribute.name"
         :description="item.attribute.description"
@@ -111,6 +111,10 @@ watch(() => selectedAttributes.value, async (newObj, oldObj) => {
 </template>
 
 <style scoped>
+.optional-item:first-of-type {
+  margin-top: 1rem;
+}
+
 h1, h2, h3, h4, h5, h6 {
   word-wrap: anywhere;
   margin: 10px 10px 10px 0px;

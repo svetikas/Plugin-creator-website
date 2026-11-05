@@ -179,4 +179,28 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: var(--app-radius);
   overflow: hidden;
 }
+
+/* Nested panels: flatten on small screens so content keeps its width */
+@media (max-width: 640px) {
+  .collapsable-panel :deep(.p-panel-header) {
+    padding: 0.4rem 0.5rem;
+  }
+
+  .collapsable-panel :deep(.p-panel-content) {
+    padding: 0.75rem 0.65rem;
+  }
+
+  .collapsable-panel :deep(.collapsable-panel) {
+    margin-top: 0.6rem;
+  }
+
+  .collapsable-panel :deep(.collapsable-panel .p-panel-content) {
+    padding: 0.6rem 0.5rem;
+  }
+
+  .collapsable-panel :deep(.p-panel-icons .p-button) {
+    width: 2rem;
+    height: 2rem;
+  }
+}
 </style>

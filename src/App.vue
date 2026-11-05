@@ -246,6 +246,10 @@ function toggleDarkMode() {
 }
 
 @media (max-width: 640px) {
+  .page-container {
+    padding: 0.75rem 0.5rem 1.5rem;
+  }
+
   .top-bar-inner {
     justify-content: center;
     text-align: center;
