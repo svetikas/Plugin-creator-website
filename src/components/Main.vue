@@ -332,16 +332,17 @@ window.onerror = function (msg, url, line, col, error) {
           <h2>Write the manifest</h2>
         </div>
 
+        <p>
+          To begin creating your plugin, please create a manifest of the plugin first. Manifest is a file that
+          helps TheoTown to identify and manage your plugin through a graphical interface. Your plugin will also
+          show up under local plugins list and the plugins toolbar.
+        </p>
+        <p>
+          If you're new to plugin creation, you might want to check out the documentation
+          <a href="https://pca.svetikas.lt/docs/getting-started/writing-a-sample-plugin/"> here</a>.
+        </p>
+
         <Collapsable title="Manifest" heading="h3">
-          <p>
-            To begin creating your plugin, please create a manifest of the plugin first. Manifest is a file that
-            helps TheoTown to identify and manage your plugin through a graphical interface. Your plugin will also
-            show up under local plugins list and the plugins toolbar.
-          </p>
-          <p>
-            If you're new to plugin creation, you might want to check out the documentation
-            <a href="https://pca.svetikas.lt/docs/getting-started/writing-a-sample-plugin/"> here</a>.
-          </p>
           <AttributeContainer
               :attribute-owner="plugin.manifest"
           />
@@ -684,6 +685,34 @@ window.onerror = function (msg, url, line, col, error) {
   white-space: pre-wrap;
   word-break: break-word;
   overflow-x: auto;
+}
+
+@media (max-width: 640px) {
+  .generator-panel {
+    padding: 1rem 0.85rem;
+    gap: 1.25rem;
+  }
+
+  .step + .step {
+    padding-top: 1.25rem;
+  }
+
+  .type-selector {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .controls {
+    flex-direction: column;
+  }
+
+  .controls :deep(.p-button) {
+    width: 100%;
+  }
+
+  .marginify {
+    margin-bottom: 0.85rem;
+  }
 }
 
 @media (max-width: 900px) {
