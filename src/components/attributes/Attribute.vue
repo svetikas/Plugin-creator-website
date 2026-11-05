@@ -43,9 +43,34 @@ watch(() => props.errors, async (newObj, oldObj) => {
 
 <template>
   <div class="attribute">
-    <label>{{ name }}</label>
+    <div class="attribute-header">
+      <label>{{ name }}</label>
+      <slot name="actions"></slot>
+    </div>
     <slot></slot>
     <span v-if="props.errors.length > 0" class="attribute-error"> {{ props.errors.join('\n') }} </span>
     <span class="attribute-description">{{ description }}</span>
   </div>
 </template>
+
+<style scoped>
+.attribute-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.375rem;
+}
+
+.attribute-header label {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.attribute-header :deep(.p-button) {
+  flex-shrink: 0;
+  width: 1.9rem;
+  height: 1.9rem;
+}
+</style>

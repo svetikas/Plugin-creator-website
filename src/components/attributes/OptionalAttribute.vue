@@ -18,10 +18,12 @@ defineEmits(['pop', 'raiseError'])
       :errors="props.errors"
       @raise-error="$emit('raiseError')"
   >
-    <Button icon="pi pi-times" severity="danger" rounded text @click="(e: Event) => {
-      e.preventDefault();
-      $emit('pop')
-    }" />
+    <template #actions>
+      <Button icon="pi pi-times" severity="danger" rounded text aria-label="Remove attribute" title="Remove attribute" @click="(e: Event) => {
+        e.preventDefault();
+        $emit('pop')
+      }" />
+    </template>
     <slot></slot>
   </Attribute>
 </template>
